@@ -2,112 +2,77 @@
 
 import { DndContext, DragEndEvent, useDroppable } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
-  useSortable,
+  arrayMove,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import React from 'react';
-
-import MultipleChoice from '../question_comp/multiple_choice/MultipleChoice';
-import { MultipleSelect } from '../question_comp/multiple_select/MultipleSelect';
-import NumericEntry from '../question_comp/numeric_entry/NumericEntry';
-import OrderingQuestion from '../question_comp/ordering_question/OrderingQuestion';
-import TrueFalse from '../question_comp/true_false/TrueFalse';
-
-export type QuestionType =
-  | 'MultipleChoice'
-  | 'MultipleSelect'
-  | 'TrueFalse'
-  | 'Numeric'
-  | 'Ordering';
-
-export interface DroppedQuestion {
-  uid: string;
-  type: QuestionType;
-}
+import React, { useEffect, useState } from 'react';
+import { DroppedQuestion, QuestionType } from '../../types/types';
+import SortableItem from './Sortabletem';
 
 interface MainContainerProps {
   dropped: DroppedQuestion[];
   setDropped: React.Dispatch<React.SetStateAction<DroppedQuestion[]>>;
 }
 
-const SortableItem: React.FC<{ item: DroppedQuestion }> = ({ item }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: item.uid });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  const renderQuestion = () => {
-    switch (item.type) {
-      case 'MultipleChoice':
-        return <MultipleChoice />;
-      case 'MultipleSelect':
-        return <MultipleSelect />;
-      case 'TrueFalse':
-        return <TrueFalse />;
-      case 'Numeric':
-        return <NumericEntry />;
-      case 'Ordering':
-        return <OrderingQuestion />;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="mb-4"
-    >
-      {renderQuestion()}
-    </div>
-  );
-};
-
 const MainContainer: React.FC<MainContainerProps> = ({
   dropped,
   setDropped,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id: 'MAIN_DROP_AREA' });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true); // prevent SSR hydration issues
+  }, []);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = dropped.findIndex((item) => item.uid === active.id);
-      const newIndex = dropped.findIndex((item) => item.uid === over.id);
-      setDropped(arrayMove(dropped, oldIndex, newIndex));
-    }
+    if (!over) return;
+
+    const data = active.data.current as
+      | { uid: string; type: QuestionType }
+      | undefined;
+    if (!data) return;
+
+    const { uid, type } = data;
+
+    setDropped((prev) => {
+      const existingIndex = prev.findIndex((item) => item.type === type);
+
+      // Duplicate prevention
+      if (existingIndex !== -1) {
+        // Reorder if dragging inside drop zone
+        const oldIndex = prev.findIndex((item) => item.uid === active.id);
+        const newIndex = prev.findIndex((item) => item.uid === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return arrayMove(prev, oldIndex, newIndex);
+        }
+
+        return prev; // duplicate ignored
+      }
+
+      // Add new item
+      return [...prev, { uid, type }];
+    });
   };
+
+  if (!mounted) return null;
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div
         ref={setNodeRef}
-        id="main_container"
         className="border border-gray-200 rounded-lg p-8 min-h-screen bg-white shadow-lg flex flex-col"
       >
-        {/* Inner drop area */}
         <div
-          className={`flex flex-col gap-4 flex-1 rounded-lg transition-all duration-200 ${
-            isOver && dropped.length > 0
-              ? 'border-2 border-blue-500 bg-blue-100'
-              : ''
+          className={`flex flex-col gap-4 flex-1 rounded-lg transition-all duration-200  ${
+            isOver ? 'border border-blue-500 bg-blue-100' : ''
           }`}
         >
           {dropped.length === 0 ? (
-            <p
-              className={`text-gray-400 text-center py-20  ${
-                isOver ? 'border-yellow-500 bg-blue-100' : ''
-              }`}
-            >
+            <p className="text-gray-400 text-center py-20">
               Drop questions here
             </p>
           ) : (

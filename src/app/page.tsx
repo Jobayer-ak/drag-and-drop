@@ -1,7 +1,7 @@
 'use client';
 
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainContainer, {
   DroppedQuestion,
 } from '../components/container/MainContainer';
@@ -56,17 +56,26 @@ const items = [
 
 export default function BasicDragPage() {
   const [dropped, setDropped] = useState<DroppedQuestion[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function handleDragEnd(event: DragEndEvent) {
+    if (!mounted) return; // wait for client mount
+
     const { active, over } = event;
-    // Only create when dropped over the main area
     if (!over || over.id !== 'MAIN_DROP_AREA') return;
 
     const type = active.id as DroppedQuestion['type'];
-    // create a unique uid (timestamp + random) to allow duplicates
-    const uid = `${type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    setDropped((prev) => [...prev, { uid, type }]);
+    setDropped((prev) => {
+      if (prev.some((item) => item.type === type)) return prev;
+
+      const uid = `${type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      return [...prev, { uid, type }];
+    });
   }
 
   return (
@@ -74,21 +83,23 @@ export default function BasicDragPage() {
       <div className="px-10 py-6 flex justify-center items-start gap-10 h-screen overflow-hidden bg-gray-50">
         {/* Left Sidebar */}
         <aside className="w-2/5 h-full">
-          {items.map((item) => (
-            <div key={item.id} className="">
-              <DraggableQItem
-                id={item.id}
-                leftIcon={ICON_MAP[item.icon]}
-                heading={item.name}
-                description={item.description}
-              />
-            </div>
-          ))}
+          {mounted &&
+            items.map((item) => (
+              <div key={item.id}>
+                <DraggableQItem
+                  id={item.id}
+                  type={item.id as DroppedQuestion['type']}
+                  leftIcon={ICON_MAP[item.icon]}
+                  heading={item.name}
+                  description={item.description}
+                />
+              </div>
+            ))}
         </aside>
 
         {/* Center Workspace */}
         <main className="w-4/6 h-full overflow-y-auto pr-2 hide-scrollbar">
-          <MainContainer dropped={dropped} />
+          <MainContainer dropped={dropped} setDropped={setDropped} />
         </main>
 
         {/* Right Sidebar */}

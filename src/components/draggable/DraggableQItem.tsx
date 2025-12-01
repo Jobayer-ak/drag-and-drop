@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/drag/DraggableQItem.tsx
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
 import React from 'react';
+import { QuestionType } from '../../types/types';
 import { QItem } from '../QItem';
 
 interface DraggableQItemProps {
-  id: string; // the drag id (will be used to decide which question to create)
+  id: string; // stable id for uniqueness
+  type: QuestionType;
   leftIcon: any;
   heading: string;
   description: string;
@@ -16,6 +17,7 @@ interface DraggableQItemProps {
 
 export default function DraggableQItem({
   id,
+  type,
   leftIcon,
   heading,
   description,
@@ -23,7 +25,8 @@ export default function DraggableQItem({
 }: DraggableQItemProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id,
+      id, // stable id
+      data: { uid: id, type }, // important for MainContainer
     });
 
   const style: React.CSSProperties | undefined = transform
@@ -42,7 +45,7 @@ export default function DraggableQItem({
         ...style,
         opacity: isDragging ? 0.6 : 1,
       }}
-      className="touch-none "
+      className="touch-none"
     >
       <QItem
         leftIcon={leftIcon}
