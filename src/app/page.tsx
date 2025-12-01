@@ -62,19 +62,35 @@ export default function BasicDragPage() {
   }, []);
 
   function handleDragEnd(event: DragEndEvent) {
-    if (!mounted) return; // wait for client mount
-
     const { active, over } = event;
-    if (!over || over.id !== 'MAIN_DROP_AREA') return;
+    if (!over) return;
 
-    const type = active.id as DroppedQuestion['type'];
+    // Drop from sidebar → new item
+    if (over.id === 'MAIN_DROP_AREA') {
+      const type = active.id as DroppedQuestion['type'];
 
-    setDropped((prev) => {
-      if (prev.some((item) => item.type === type)) return prev;
+      setDropped((prev) => {
+        if (prev.some((i) => i.type === type)) return prev;
 
-      const uid = `${type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      return [...prev, { uid, type }];
-    });
+        const uid = `${type}-${Date.now()}-${Math.random()}`;
+        return [...prev, { uid, type }];
+      });
+
+      return;
+    }
+
+    // Sorting inside drop zone
+    const oldIndex = dropped.findIndex((i) => i.uid === active.id);
+    const newIndex = dropped.findIndex((i) => i.uid === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      setDropped((prev) => {
+        const newArr = [...prev];
+        const [moved] = newArr.splice(oldIndex, 1);
+        newArr.splice(newIndex, 0, moved);
+        return newArr;
+      });
+    }
   }
 
   return (

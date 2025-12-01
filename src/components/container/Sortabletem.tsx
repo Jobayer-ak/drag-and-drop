@@ -1,18 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DroppedQuestion } from '../../types/types';
+
+import React from 'react';
 import MultipleChoice from '../question_comp/multiple_choice/MultipleChoice';
 import { MultipleSelect } from '../question_comp/multiple_select/MultipleSelect';
 import NumericEntry from '../question_comp/numeric_entry/NumericEntry';
 import OrderingQuestion from '../question_comp/ordering_question/OrderingQuestion';
 import TrueFalse from '../question_comp/true_false/TrueFalse';
 
-export const SortableItem: React.FC<{ item: DroppedQuestion }> = ({ item }) => {
+interface SortableItemProps {
+  item: DroppedQuestion;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.uid });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
@@ -22,7 +30,7 @@ export const SortableItem: React.FC<{ item: DroppedQuestion }> = ({ item }) => {
       case 'MultipleChoice':
         return <MultipleChoice uid={item.uid} />;
       case 'MultipleSelect':
-        return <MultipleSelect uid={item.uid} />; // pass uid
+        return <MultipleSelect uid={item.uid} />;
       case 'TrueFalse':
         return <TrueFalse uid={item.uid} />;
       case 'Numeric':
@@ -35,25 +43,17 @@ export const SortableItem: React.FC<{ item: DroppedQuestion }> = ({ item }) => {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="mb-4"
-      // Allow clicks inside interactive elements
-      onPointerDown={(e) => {
-        const target = e.target as HTMLElement;
-        if (
-          ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'LABEL'].includes(
-            target.tagName
-          )
-        ) {
-          e.stopPropagation();
-        }
-      }}
-    >
-      {renderQuestion()}
+    <div ref={setNodeRef} style={style} className="mb-4 select-none">
+      {/* Wrap the question content in a div */}
+      <div>
+        {/** Pass listeners ONLY to the drag handle icon **/}
+        {renderQuestion() &&
+          React.cloneElement(renderQuestion() as any, {
+            dragHandleProps: { ...listeners, ...attributes },
+          })}
+      </div>
     </div>
   );
 };
+
+export default SortableItem;

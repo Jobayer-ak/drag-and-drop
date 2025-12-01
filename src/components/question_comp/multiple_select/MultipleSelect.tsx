@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +18,9 @@ import {
 import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
 
-export const MultipleSelect: React.FC<ComponentNameProps> = ({ uid }) => {
+export const MultipleSelect: React.FC<
+  ComponentNameProps & { dragHandleProps?: any }
+> = ({ uid, dragHandleProps }) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -32,7 +35,11 @@ export const MultipleSelect: React.FC<ComponentNameProps> = ({ uid }) => {
     <Card className="border border-gray-200 rounded-lg py-2">
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
-          <MdOutlineDragIndicator className="h-6 w-6 text-gray-400" />
+          {/* Drag starts only when grabbing this icon */}
+          <MdOutlineDragIndicator
+            className="h-6 w-6 text-gray-400 cursor-move focus:outline-none focus:ring-0"
+            {...dragHandleProps} // <-- attach listeners here
+          />
           Multiple Select Question
         </CardTitle>
         <CardAction>
@@ -46,7 +53,7 @@ export const MultipleSelect: React.FC<ComponentNameProps> = ({ uid }) => {
       <CardContent>
         <div className="flex flex-col gap-4 text-gray-400 px-1.5">
           {options.map((option, index) => {
-            const id = `${uid}-option-${index}`; // use uid to make each checkbox unique
+            const id = `${uid}-option-${index}`;
             return (
               <div key={id} className="flex items-center gap-3">
                 <Checkbox

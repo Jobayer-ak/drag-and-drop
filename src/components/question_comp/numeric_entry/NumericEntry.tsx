@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React from 'react';
@@ -16,16 +17,25 @@ import {
 } from '../../ui/card';
 import { Input } from '../../ui/input';
 
-const NumericEntry: React.FC<ComponentNameProps> = ({ uid }) => {
+interface NumericEntryProps extends ComponentNameProps {
+  dragHandleProps?: any;
+}
+
+const NumericEntry: React.FC<NumericEntryProps> = ({
+  uid,
+  dragHandleProps,
+}) => {
   const inputId = `${uid}-numeric-input`; // unique id for input
 
   return (
     <Card className="border border-gray-200 rounded-lg py-2">
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
-          <div className="cursor-move">
-            <MdOutlineDragIndicator className="h-6 w-6 text-gray-400" />
-          </div>
+          {/* Drag handle */}
+          <MdOutlineDragIndicator
+            className="h-6 w-6 text-gray-400 cursor-move focus:outline-none focus-visible:ring-0"
+            {...dragHandleProps}
+          />
           Numerical Entry Question
         </CardTitle>
 
