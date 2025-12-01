@@ -2,7 +2,6 @@
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { DroppedQuestion } from '../../types/types';
 
 import React from 'react';
@@ -17,12 +16,24 @@ interface SortableItemProps {
 }
 
 const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: item.uid });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
     transition,
+    isDragging,
+  } = useSortable({ id: item.uid });
+
+  // Keep width and minHeight so card doesn't shrink
+  const style: React.CSSProperties = {
+    transform: transform ? `translateY(${transform.y}px)` : undefined,
+    transition,
+    width: '100%',
+    minHeight: '60px',
+    zIndex: isDragging ? 999 : undefined,
+    backgroundColor: 'white',
+    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
   };
 
   const renderQuestion = () => {
