@@ -8,7 +8,7 @@ import {
 } from '@dnd-kit/sortable';
 import React, { useEffect, useState } from 'react';
 import { DroppedQuestion, QuestionType } from '../../types/types';
-import SortableItem from './Sortabletem';
+import { SortableItem } from './Sortabletem';
 
 interface MainContainerProps {
   dropped: DroppedQuestion[];

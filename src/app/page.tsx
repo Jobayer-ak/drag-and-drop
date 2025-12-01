@@ -2,12 +2,11 @@
 
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { useEffect, useState } from 'react';
-import MainContainer, {
-  DroppedQuestion,
-} from '../components/container/MainContainer';
+import MainContainer from '../components/container/MainContainer';
 import DraggableQItem from '../components/draggable/DraggableQItem';
 import MainEditPage from '../components/Editable/MainEditPage';
 import { ICON_MAP } from '../components/QItem';
+import { DroppedQuestion } from '../types/types';
 
 const items = [
   {

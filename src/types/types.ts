@@ -14,3 +14,7 @@ export interface MainContainerProps {
   dropped: DroppedQuestion[];
   setDropped: React.Dispatch<React.SetStateAction<DroppedQuestion[]>>;
 }
+
+export interface ComponentNameProps {
+  uid: string;
+}
