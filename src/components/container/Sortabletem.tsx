@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
 import { DroppedQuestion } from '../../types/types';
 
-import React from 'react';
 import MultipleChoice from '../question_comp/multiple_choice/MultipleChoice';
 import { MultipleSelect } from '../question_comp/multiple_select/MultipleSelect';
 import NumericEntry from '../question_comp/numeric_entry/NumericEntry';
@@ -25,44 +23,48 @@ const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
     isDragging,
   } = useSortable({ id: item.uid });
 
-  // Keep width and minHeight so card doesn't shrink
+  // Vertical-only transform
   const style: React.CSSProperties = {
     transform: transform ? `translateY(${transform.y}px)` : undefined,
     transition,
     width: '100%',
-    minHeight: '60px',
+    minHeight: '60px', // adjust to your card's min height
     zIndex: isDragging ? 999 : undefined,
-    backgroundColor: 'white',
     boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
+    background: isDragging ? '#f9fafb' : undefined,
+    borderRadius: '0.5rem',
   };
 
   const renderQuestion = () => {
+    const dragHandleProps = { ...listeners, ...attributes };
+
     switch (item.type) {
       case 'MultipleChoice':
-        return <MultipleChoice uid={item.uid} />;
+        return (
+          <MultipleChoice uid={item.uid} dragHandleProps={dragHandleProps} />
+        );
       case 'MultipleSelect':
-        return <MultipleSelect uid={item.uid} />;
+        return (
+          <MultipleSelect uid={item.uid} dragHandleProps={dragHandleProps} />
+        );
       case 'TrueFalse':
-        return <TrueFalse uid={item.uid} />;
+        return <TrueFalse uid={item.uid} dragHandleProps={dragHandleProps} />;
       case 'Numeric':
-        return <NumericEntry uid={item.uid} />;
+        return (
+          <NumericEntry uid={item.uid} dragHandleProps={dragHandleProps} />
+        );
       case 'Ordering':
-        return <OrderingQuestion uid={item.uid} />;
+        return (
+          <OrderingQuestion uid={item.uid} dragHandleProps={dragHandleProps} />
+        );
       default:
         return null;
     }
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="mb-4 select-none">
-      {/* Wrap the question content in a div */}
-      <div>
-        {/** Pass listeners ONLY to the drag handle icon **/}
-        {renderQuestion() &&
-          React.cloneElement(renderQuestion() as any, {
-            dragHandleProps: { ...listeners, ...attributes },
-          })}
-      </div>
+    <div ref={setNodeRef} style={style}>
+      {renderQuestion()}
     </div>
   );
 };
