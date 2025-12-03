@@ -1,12 +1,20 @@
 'use client';
 
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
-import { useEffect, useState } from 'react';
-import MainContainer from '../components/container/MainContainer';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from '@dnd-kit/core';
+import { JSX, useEffect, useState } from 'react';
+
+import { v4 as uuidv4 } from 'uuid';
+import { MainContainer } from '../components/container/MainContainer';
 import DraggableQItem from '../components/draggable/DraggableQItem';
+import DragPreview from '../components/DragPreview';
 import MainEditPage from '../components/Editable/MainEditPage';
 import { ICON_MAP } from '../components/QItem';
-import { DroppedQuestion } from '../types/types';
+import { DroppedQuestion, QuestionType } from '../types/types';
 
 const items = [
   {
@@ -53,56 +61,79 @@ const items = [
   },
 ];
 
-export default function BasicDragPage() {
-  const [dropped, setDropped] = useState<DroppedQuestion[]>([]);
+export default function BasicDragPage(): JSX.Element {
   const [mounted, setMounted] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [droppedItems, setDroppedItems] = useState<DroppedQuestion[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  function handleDragStart(event: DragStartEvent) {
+    // ensure string
+    setActiveId(String(event.active?.id ?? null));
+  }
+
+  // console.log('Active id: ', activeId);
+  // When drag ends
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    setActiveId(null);
+
     if (!over) return;
 
-    // Drop from sidebar → new item
-    if (over.id === 'MAIN_DROP_AREA') {
-      const type = active.id as DroppedQuestion['type'];
-
-      setDropped((prev) => {
-        if (prev.some((i) => i.type === type)) return prev;
-
-        const uid = `${type}-${Date.now()}-${Math.random()}`;
-        return [...prev, { uid, type }];
-      });
-
-      return;
+    // If dropped on main container (empty list)
+    if (over.id === 'MAIN_CONTAINER') {
+      return addNewItemAtIndex(droppedItems.length);
     }
 
-    // Sorting inside drop zone
-    const oldIndex = dropped.findIndex((i) => i.uid === active.id);
-    const newIndex = dropped.findIndex((i) => i.uid === over.id);
-
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      setDropped((prev) => {
-        const newArr = [...prev];
-        const [moved] = newArr.splice(oldIndex, 1);
-        newArr.splice(newIndex, 0, moved);
-        return newArr;
-      });
+    // If dropped on drop zone
+    if (String(over.id).startsWith('DROP_ZONE_')) {
+      const index = Number(String(over.id).replace('DROP_ZONE_', ''));
+      return addNewItemAtIndex(index);
     }
   }
 
+  function addNewItemAtIndex(index: number) {
+    const newItem: DroppedQuestion = {
+      uid: uuidv4(),
+      type: activeId as QuestionType,
+    };
+
+    setDroppedItems((prev) => {
+      // unique: remove same type if already exists
+      const filtered = prev.filter((i) => i.type !== newItem.type);
+
+      // insert at index
+      const updated = [...filtered];
+      updated.splice(index, 0, newItem);
+
+      return updated;
+    });
+  }
+
+  const activeItem = items.find((it) => it.id === activeId) ?? null;
+
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className="px-10 py-6 flex justify-center items-start gap-10 h-screen overflow-hidden bg-gray-50">
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="px-10 pb-6 flex justify-center items-start gap-10 h-screen overflow-hidden  bg-gray-50">
         {/* Left Sidebar */}
-        <aside className="w-2/5 h-full">
+        <aside className="w-2/5 h-full mt-6">
           {mounted &&
             items.map((item) => (
-              <div key={item.id}>
+              <div
+                key={item.id}
+                // fade the original when it is being dragged
+                className={
+                  activeId === item.id
+                    ? 'opacity-50 transition-opacity'
+                    : 'transition-opacity'
+                }
+              >
                 <DraggableQItem
                   id={item.id}
+                  activeId={activeId}
                   type={item.id as DroppedQuestion['type']}
                   leftIcon={ICON_MAP[item.icon]}
                   heading={item.name}
@@ -113,15 +144,34 @@ export default function BasicDragPage() {
         </aside>
 
         {/* Center Workspace */}
-        <main className="w-4/6 h-full overflow-y-auto pr-2 hide-scrollbar">
-          <MainContainer dropped={dropped} setDropped={setDropped} />
+        <main
+          id="MAIN_CONTAINER"
+          className="w-4/6 py-6 h-full overflow-y-auto pr-2 hide-scrollbar"
+        >
+          <MainContainer
+            droppedItems={droppedItems}
+            setDroppedItems={setDroppedItems}
+            activeType={activeId}
+          />
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-2/5 h-full overflow-y-auto hide-scrollbar">
+        <aside className="w-2/5 h-full pt-2 overflow-y-auto hide-scrollbar">
           <MainEditPage />
         </aside>
       </div>
+
+      {/* DragOverlay must be inside DndContext */}
+      <DragOverlay>
+        {activeItem ? (
+          // render a PRESENTATIONAL preview (no useDraggable inside)
+          <DragPreview
+            leftIcon={ICON_MAP[activeItem.icon]}
+            heading={activeItem.name}
+            description={activeItem.description}
+          />
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }

@@ -1,111 +1,133 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  MeasuringStrategy,
-  useDroppable,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import React, { useEffect, useState } from 'react';
-import { DroppedQuestion, QuestionType } from '../../types/types';
-import SortableItem from './Sortabletem';
+import { useDroppable } from '@dnd-kit/core';
+import { useEffect, useRef, useState } from 'react';
+import { DroppedQuestion } from '../../types/types';
+import MultipleChoice from '../question_comp/multiple_choice/MultipleChoice';
+import { MultipleSelect } from '../question_comp/multiple_select/MultipleSelect';
+import NumericEntry from '../question_comp/numeric_entry/NumericEntry';
+import OrderingQuestion from '../question_comp/ordering_question/OrderingQuestion';
+import TrueFalse from '../question_comp/true_false/TrueFalse';
 
 interface MainContainerProps {
-  dropped: DroppedQuestion[];
-  setDropped: React.Dispatch<React.SetStateAction<DroppedQuestion[]>>;
+  droppedItems: DroppedQuestion[];
 }
 
-const MainContainer: React.FC<MainContainerProps> = ({
-  dropped,
-  setDropped,
+export const MainContainer: React.FC<MainContainerProps> = ({
+  droppedItems,
 }) => {
-  const { setNodeRef, isOver } = useDroppable({ id: 'MAIN_DROP_AREA' });
-  const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [usedHeight, setUsedHeight] = useState(0);
 
-  useEffect(() => setMounted(true), []);
+  const { setNodeRef: setMainRef, isOver: isOverMain } = useDroppable({
+    id: 'MAIN_CONTAINER',
+  });
 
-  // While dragging over, we can dynamically insert new items at the position
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
+  // Calculate total height of dropped items dynamically
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    // Only handle items dragged from outside (left panel)
-    if (!dropped.find((d) => d.uid === active.id)) {
-      const type = active.id as QuestionType;
-      const uid = `${type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const occupied = Array.from(
+      containerRef.current.querySelectorAll('.question-block')
+    ).reduce((sum, el: any) => sum + el.offsetHeight + 12, 12); // +8 for gap between items
 
-      // Insert at index where we hover
-      const overIndex = dropped.findIndex((d) => d.uid === over.id);
-      if (overIndex === -1) {
-        setDropped((prev) => [...prev, { uid, type }]);
-      } else {
-        setDropped((prev) => [
-          ...prev.slice(0, overIndex),
-          { uid, type },
-          ...prev.slice(overIndex),
-        ]);
-      }
-    }
-  };
+    setUsedHeight(occupied);
+  }, [droppedItems]);
 
-  console.log('is over: ', isOver);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const oldIndex = dropped.findIndex((d) => d.uid === active.id);
-    const newIndex = dropped.findIndex((d) => d.uid === over.id);
-
-    // Reorder if dragging inside drop zone
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      setDropped((prev) => arrayMove(prev, oldIndex, newIndex));
-    }
-  };
-
-  if (!mounted) return null;
+  console.log('use height: ', usedHeight);
 
   return (
-    <DndContext
-      collisionDetection={closestCenter}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      measuring={{ droppable: { strategy: 1 as MeasuringStrategy } }}
+    <div
+      ref={(el) => {
+        setMainRef(el);
+        containerRef.current = el;
+      }}
+      className="relative border border-gray-300 rounded-lg p-4 min-h-screen bg-white shadow-lg"
     >
-      <div
-        ref={setNodeRef}
-        className={`border border-gray-200 rounded-lg p-8 min-h-screen bg-white shadow-lg flex flex-col gap-4 `}
-      >
+      {/* ===============================================
+          Dynamic remaining empty space highlight (behind last item)
+          =============================================== */}
+      {droppedItems.length > 0 && isOverMain && (
         <div
-          className={`flex flex-col gap-4 min-h-screen p-4 ${
-            isOver ? 'border border-blue-500 rounded-md bg-blue-100' : ''
-          }`}
-        >
-          {dropped.length === 0 ? (
-            <p className="text-gray-400 text-center py-20">
-              Drop questions here
-            </p>
-          ) : (
-            <SortableContext
-              items={dropped.map((d) => d.uid)}
-              strategy={verticalListSortingStrategy}
-            >
-              {dropped.map((item) => (
-                <SortableItem key={item.uid} item={item} />
-              ))}
-            </SortableContext>
-          )}
-        </div>
+          className="absolute left-5 right-5 top-5 bottom-5 bg-blue-200 border border-gray-400/60 pointer-events-none rounded-md z-0 transition-all"
+          style={{
+            top: usedHeight,
+            bottom: 0,
+          }}
+        />
+      )}
+
+      {/* Full container highlight when empty */}
+      {droppedItems.length === 0 && isOverMain && (
+        <div className="absolute left-5 right-5 top-5 bottom-4 inset-0 bg-blue-200 border border-gray-400/60 pointer-events-none rounded-md z-0 transition-all" />
+      )}
+
+      {/* EMPTY MESSAGE */}
+      {droppedItems.length === 0 && !isOverMain && (
+        <p className="text-gray-400 text-center mt-8">Drag questions here</p>
+      )}
+
+      <div className="z-10 flex flex-col">
+        {droppedItems.map((item: any, index: number) => (
+          <div key={item.uid} className="question-block relative">
+            {/* DropZone: pass totalItems so it can skip last */}
+            <DropZone index={index} totalItems={droppedItems.length} />
+            {renderItem(item)}
+          </div>
+        ))}
       </div>
-    </DndContext>
+    </div>
   );
 };
 
-export default MainContainer;
+const renderItem = (item: DroppedQuestion) => {
+  switch (item.type) {
+    case 'MultipleChoice':
+      return <MultipleChoice uid={item.uid} />;
+    case 'MultipleSelect':
+      return <MultipleSelect uid={item.uid} />;
+    case 'TrueFalse':
+      return <TrueFalse uid={item.uid} />;
+    case 'Numeric':
+      return <NumericEntry uid={item.uid} />;
+    case 'Ordering':
+      return <OrderingQuestion uid={item.uid} />;
+    default:
+      return null;
+  }
+};
+
+/** =============================
+ *  DROPZONE BETWEEN ITEMS OR TOP ONLY
+ *  - Appears only if at least 2 items exist
+ *  - Does NOT appear at the very bottom
+ *  ============================= */
+const DropZone = ({
+  index,
+  totalItems,
+}: {
+  index: number;
+  totalItems: number;
+}) => {
+  // Only show DropZone if:
+  // 1. There are at least 2 items
+  // 2. The DropZone is NOT at the last position (bottom)
+  if (totalItems < 2 || index === totalItems) return null;
+
+  const { isOver, setNodeRef } = useDroppable({
+    id: `DROP_ZONE_${index}`,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`h-8 w-full my-2 transition-all ${
+        isOver
+          ? 'bg-blue-300 rounded-md border border-blue-400'
+          : 'bg-transparent'
+      }`}
+    />
+  );
+};

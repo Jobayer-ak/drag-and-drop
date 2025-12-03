@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 
 const MultipleChoice: React.FC<
   ComponentNameProps & { dragHandleProps?: any }
-> = ({ uid, dragHandleProps }) => {
+> = ({ uid }) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
@@ -31,7 +31,7 @@ const MultipleChoice: React.FC<
           {/* Drag handle */}
           <MdOutlineDragIndicator
             className="h-6 w-6 text-gray-400 cursor-move focus:outline-none focus:ring-0"
-            {...dragHandleProps}
+            // {...dragHandleProps}
           />
           Multiple Choice Question
         </CardTitle>

@@ -1,6 +1,8 @@
 export type QuestionType =
   | 'MultipleChoice'
   | 'MultipleSelect'
+  | 'Matching'
+  | 'FillBlank'
   | 'TrueFalse'
   | 'Numeric'
   | 'Ordering';

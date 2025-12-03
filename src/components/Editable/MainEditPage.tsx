@@ -1,12 +1,14 @@
 'use client';
 
+import MultipleChoicePattern from '../question-create/Multiple_choice_pattern';
+
 const MainEditPage = () => {
   return (
     <div
       id="mainEditPage"
-      className=" border border-gray-200 rounded-lg px-4 py-4 min-h-screen bg-white shadow-lg"
+      className=" border border-gray-200 rounded-lg min-h-screen bg-white shadow-lg"
     >
-      Hello
+      <MultipleChoicePattern />
     </div>
   );
 };
