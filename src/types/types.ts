@@ -18,5 +18,6 @@ export interface MainContainerProps {
 }
 
 export interface ComponentNameProps {
-  uid: string;
+  uid?: string;
+  preview?: boolean;
 }

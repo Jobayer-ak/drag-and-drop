@@ -1,6 +1,7 @@
 'use client';
 
 import { useSortable } from '@dnd-kit/sortable';
+import { useEffect, useRef } from 'react';
 import { DroppedQuestion } from '../../types/types';
 
 import { CSS } from '@dnd-kit/utilities';
@@ -13,9 +14,14 @@ import TrueFalse from '../question_comp/true_false/TrueFalse';
 interface SortableItemProps {
   item: DroppedQuestion;
   lastDropped: boolean;
+  onDragStateChange?: (uid: string, dragging: boolean) => void;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ item, lastDropped }) => {
+const SortableItem: React.FC<SortableItemProps> = ({
+  item,
+  lastDropped,
+  onDragStateChange,
+}) => {
   const {
     attributes,
     listeners,
@@ -23,28 +29,57 @@ const SortableItem: React.FC<SortableItemProps> = ({ item, lastDropped }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.uid });
+  } = useSortable({
+    id: item.uid,
+    // Restrict to vertical movement only
+    data: {
+      type: 'sortable-item',
+    },
+  });
 
-  // Correct required transform handling
-  // const style: React.CSSProperties = {
-  //   transform: CSS.Transform.toString(transform), // REQUIRED 🔥
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Notify parent about drag state
+  useEffect(() => {
+    onDragStateChange?.(item.uid, isDragging);
+  }, [isDragging, item.uid, onDragStateChange]);
+
+  // Fix height collapsing during drag
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    if (isDragging) {
+      const height = wrapperRef.current.getBoundingClientRect().height;
+      wrapperRef.current.style.height = `${height}px`;
+    } else {
+      wrapperRef.current.style.height = 'auto';
+    }
+  }, [isDragging]);
+
+  // Apply ONLY Y-axis transform, completely ignore X-axis
+  // const style: CSSProperties = {
+  //   transform: transform
+  //     ? CSS.Transform.toString({
+  //         x: 0, // Force X to 0 - NO horizontal movement
+  //         y: transform.y,
+  //         scaleX: 1,
+  //         scaleY: 1,
+  //       })
+  //     : undefined,
   //   transition,
+  //   zIndex: isDragging ? 100 : 1,
   //   width: '100%',
-  //   minHeight: '60px',
-  //   zIndex: isDragging ? 999 : undefined,
-  //   boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
-  //   background: isDragging ? '#f9fafb' : undefined,
-  //   borderRadius: '0.5rem',
+  //   opacity: isDragging ? 0.9 : 1,
+  //   pointerEvents: isDragging ? 'none' : 'auto',
+  //   // Prevent horizontal offset during drag
+  //   left: 0,
+  //   right: 0,
   // };
 
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+  const style = {
+    transform: CSS.Transform.toString(transform), // ← This respects modifiers!
     transition,
-    width: '100%',
-    borderRadius: '0.5rem',
-    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
-    background: lastDropped ? '#e0f2ff' : isDragging ? '#f9fafb' : undefined,
-    border: lastDropped ? '1px dashed #3b82f6' : undefined,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : 1,
   };
 
   const dragHandleProps = { ...listeners, ...attributes };
@@ -55,33 +90,30 @@ const SortableItem: React.FC<SortableItemProps> = ({ item, lastDropped }) => {
         return (
           <MultipleChoice uid={item.uid} dragHandleProps={dragHandleProps} />
         );
-
       case 'MultipleSelect':
         return (
           <MultipleSelect uid={item.uid} dragHandleProps={dragHandleProps} />
         );
-
       case 'TrueFalse':
         return <TrueFalse uid={item.uid} dragHandleProps={dragHandleProps} />;
-
       case 'Numeric':
         return (
           <NumericEntry uid={item.uid} dragHandleProps={dragHandleProps} />
         );
-
       case 'Ordering':
         return (
           <OrderingQuestion uid={item.uid} dragHandleProps={dragHandleProps} />
         );
-
       default:
         return null;
     }
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
-      {renderQuestion()}
+    <div ref={wrapperRef} className="w-full relative">
+      <div ref={setNodeRef} {...attributes} {...listeners} style={style}>
+        {renderQuestion()}
+      </div>
     </div>
   );
 };

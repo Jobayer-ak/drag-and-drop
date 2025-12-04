@@ -1,19 +1,28 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import {
+  closestCenter,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  MeasuringStrategy,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { JSX, useEffect, useState } from 'react';
 
+import { arrayMove } from '@dnd-kit/sortable';
 import { v4 as uuidv4 } from 'uuid';
 import { MainContainer } from '../components/container/MainContainer';
 import DraggableQItem from '../components/draggable/DraggableQItem';
 import DragPreview from '../components/DragPreview';
 import MainEditPage from '../components/Editable/MainEditPage';
 import { ICON_MAP } from '../components/QItem';
+import SortingPreview from '../components/SortingPreview';
 import { DroppedQuestion, QuestionType } from '../types/types';
 
 const items = [
@@ -64,8 +73,10 @@ const items = [
 export default function BasicDragPage(): JSX.Element {
   const [mounted, setMounted] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+
   const [droppedItems, setDroppedItems] = useState<DroppedQuestion[]>([]);
   const [lastDroppedUid, setLastDroppedUid] = useState<string | null>(null);
+  const [dragStartY, setDragStartY] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -74,6 +85,16 @@ export default function BasicDragPage(): JSX.Element {
   function handleDragStart(event: DragStartEvent) {
     // ensure string
     setActiveId(String(event.active?.id ?? null));
+    // setActiveType(String(event.active?.));
+    // console.log('event: ', event);
+
+    const pointerEvent = event.active?.data?.current?.sensorEvent as
+      | PointerEvent
+      | TouchEvent;
+    if (pointerEvent) {
+      setDragStartY(pointerEvent.clientY); // store Y
+    }
+    setActiveId(String(event.active?.id ?? null));
   }
 
   // When drag ends
@@ -81,14 +102,27 @@ export default function BasicDragPage(): JSX.Element {
     const { active, over } = event;
     setActiveId(null);
 
+    console.log('end event: ', event);
+
     if (!over) return;
 
-    // If dropped on main container (empty list)
+    // ⭐ Reordering inside main container
+    if (active.id !== over.id && over.id && typeof over.id === 'string') {
+      const activeIndex = droppedItems.findIndex((i) => i.uid === active.id);
+      const overIndex = droppedItems.findIndex((i) => i.uid === over.id);
+
+      // If dragging an existing dropped item
+      if (activeIndex !== -1 && overIndex !== -1) {
+        setDroppedItems((prev) => arrayMove(prev, activeIndex, overIndex));
+        return;
+      }
+    }
+
+    //  Dropping from left sidebar (your existing logic)
     if (over.id === 'MAIN_CONTAINER') {
       return addNewItemAtIndex(droppedItems.length);
     }
 
-    // If dropped on drop zone
     if (String(over.id).startsWith('DROP_ZONE_')) {
       const index = Number(String(over.id).replace('DROP_ZONE_', ''));
       return addNewItemAtIndex(index);
@@ -116,10 +150,37 @@ export default function BasicDragPage(): JSX.Element {
   }
 
   const activeItem = items.find((it) => it.id === activeId) ?? null;
-  console.log('last drop: ', lastDroppedUid);
+
+  const sortingDragActiveId = droppedItems.filter(
+    (item) => item.uid === activeId
+  );
+
+  console.log('Sorting drag active id: ', sortingDragActiveId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4, // small drag threshold so it doesn’t trigger immediately
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 5,
+      },
+    })
+  );
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      measuring={{
+        droppable: { strategy: MeasuringStrategy.Always },
+      }}
+    >
       <div className="px-10 pb-6 flex justify-center items-start gap-10 h-screen overflow-hidden  bg-gray-50">
         {/* Left Sidebar */}
         <aside className="w-2/5 h-full mt-6">
@@ -148,10 +209,7 @@ export default function BasicDragPage(): JSX.Element {
         </aside>
 
         {/* Center Workspace */}
-        <main
-          id="MAIN_CONTAINER"
-          className="w-4/6 py-6 h-full overflow-y-auto pr-2 hide-scrollbar"
-        >
+        <main className="w-4/6 py-6 h-full overflow-y-auto pr-2 hide-scrollbar">
           <MainContainer
             droppedItems={droppedItems}
             setDroppedItems={setDroppedItems}
@@ -175,7 +233,12 @@ export default function BasicDragPage(): JSX.Element {
             heading={activeItem.name}
             description={activeItem.description}
           />
-        ) : null}
+        ) : (
+          <SortingPreview
+            sortingDragActiveId={sortingDragActiveId}
+            droppedItems={droppedItems}
+          />
+        )}
       </DragOverlay>
     </DndContext>
   );

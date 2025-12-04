@@ -23,11 +23,16 @@ interface OrderingQuestionProps extends ComponentNameProps {
 const OrderingQuestion: React.FC<OrderingQuestionProps> = ({
   uid,
   dragHandleProps,
+  preview,
 }) => {
-  const options = ['Option 1', 'Option 2', 'Option 3'];
+  const options = ['Option 1', 'Option 2'];
 
   return (
-    <Card className="border border-gray-200 rounded-lg py-2">
+    <Card
+      className={`border ${
+        preview ? 'bg-white' : ''
+      } border-gray-200 rounded-lg py-2`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
           {/* Drag handle for the whole card */}

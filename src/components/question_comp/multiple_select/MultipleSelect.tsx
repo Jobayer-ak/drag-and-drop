@@ -20,7 +20,7 @@ import { Label } from '../../ui/label';
 
 export const MultipleSelect: React.FC<
   ComponentNameProps & { dragHandleProps?: any }
-> = ({ uid }) => {
+> = ({ uid, dragHandleProps, preview }) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -32,13 +32,17 @@ export const MultipleSelect: React.FC<
   };
 
   return (
-    <Card className="border border-gray-200 rounded-lg py-2">
+    <Card
+      className={`border ${
+        preview ? 'bg-white' : ''
+      } border-gray-200 rounded-lg py-2`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
           {/* Drag starts only when grabbing this icon */}
           <MdOutlineDragIndicator
             className="h-6 w-6 text-gray-400 cursor-move focus:outline-none focus:ring-0"
-            // {...dragHandleProps} // <-- attach listeners here
+            {...dragHandleProps} // <-- attach listeners here
           />
           Multiple Select Question
         </CardTitle>

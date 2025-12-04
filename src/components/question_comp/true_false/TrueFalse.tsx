@@ -22,12 +22,20 @@ interface TrueFalseProps extends ComponentNameProps {
   dragHandleProps?: any;
 }
 
-const TrueFalse: React.FC<TrueFalseProps> = ({ uid, dragHandleProps }) => {
+const TrueFalse: React.FC<TrueFalseProps> = ({
+  uid,
+  dragHandleProps,
+  preview,
+}) => {
   const options = ['True', 'False'];
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
   return (
-    <Card className="border border-gray-200 rounded-lg py-2">
+    <Card
+      className={`border ${
+        preview ? 'bg-white' : ''
+      } border-gray-200 rounded-lg py-2`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
           {/* Drag handle */}
