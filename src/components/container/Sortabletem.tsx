@@ -12,9 +12,10 @@ import TrueFalse from '../question_comp/true_false/TrueFalse';
 
 interface SortableItemProps {
   item: DroppedQuestion;
+  lastDropped: boolean;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
+const SortableItem: React.FC<SortableItemProps> = ({ item, lastDropped }) => {
   const {
     attributes,
     listeners,
@@ -25,15 +26,25 @@ const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
   } = useSortable({ id: item.uid });
 
   // Correct required transform handling
+  // const style: React.CSSProperties = {
+  //   transform: CSS.Transform.toString(transform), // REQUIRED 🔥
+  //   transition,
+  //   width: '100%',
+  //   minHeight: '60px',
+  //   zIndex: isDragging ? 999 : undefined,
+  //   boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
+  //   background: isDragging ? '#f9fafb' : undefined,
+  //   borderRadius: '0.5rem',
+  // };
+
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform), // REQUIRED 🔥
+    transform: CSS.Transform.toString(transform),
     transition,
     width: '100%',
-    minHeight: '60px',
-    zIndex: isDragging ? 999 : undefined,
-    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
-    background: isDragging ? '#f9fafb' : undefined,
     borderRadius: '0.5rem',
+    boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.15)' : undefined,
+    background: lastDropped ? '#e0f2ff' : isDragging ? '#f9fafb' : undefined,
+    border: lastDropped ? '1px dashed #3b82f6' : undefined,
   };
 
   const dragHandleProps = { ...listeners, ...attributes };

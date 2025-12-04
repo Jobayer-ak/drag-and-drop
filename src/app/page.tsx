@@ -65,6 +65,7 @@ export default function BasicDragPage(): JSX.Element {
   const [mounted, setMounted] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [droppedItems, setDroppedItems] = useState<DroppedQuestion[]>([]);
+  const [lastDroppedUid, setLastDroppedUid] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +76,6 @@ export default function BasicDragPage(): JSX.Element {
     setActiveId(String(event.active?.id ?? null));
   }
 
-  // console.log('Active id: ', activeId);
   // When drag ends
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -101,6 +101,8 @@ export default function BasicDragPage(): JSX.Element {
       type: activeId as QuestionType,
     };
 
+    setLastDroppedUid(newItem.uid);
+
     setDroppedItems((prev) => {
       // unique: remove same type if already exists
       const filtered = prev.filter((i) => i.type !== newItem.type);
@@ -114,6 +116,7 @@ export default function BasicDragPage(): JSX.Element {
   }
 
   const activeItem = items.find((it) => it.id === activeId) ?? null;
+  console.log('last drop: ', lastDroppedUid);
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -134,6 +137,7 @@ export default function BasicDragPage(): JSX.Element {
                 <DraggableQItem
                   id={item.id}
                   activeId={activeId}
+                  // lastDroppedUid={lastDroppedUid}
                   type={item.id as DroppedQuestion['type']}
                   leftIcon={ICON_MAP[item.icon]}
                   heading={item.name}
@@ -151,7 +155,8 @@ export default function BasicDragPage(): JSX.Element {
           <MainContainer
             droppedItems={droppedItems}
             setDroppedItems={setDroppedItems}
-            activeType={activeId}
+            activeItem={activeId}
+            lastDroppedUid={lastDroppedUid}
           />
         </main>
 
