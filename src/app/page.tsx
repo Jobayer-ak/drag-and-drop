@@ -7,7 +7,6 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  MeasuringStrategy,
   PointerSensor,
   TouchSensor,
   useSensor,
@@ -177,9 +176,9 @@ export default function BasicDragPage(): JSX.Element {
       onDragEnd={handleDragEnd}
       sensors={sensors}
       collisionDetection={closestCenter}
-      measuring={{
-        droppable: { strategy: MeasuringStrategy.Always },
-      }}
+      // measuring={{
+      //   droppable: { strategy: MeasuringStrategy.Always },
+      // }}
     >
       <div className="px-10 pb-6 flex justify-center items-start gap-10 h-screen overflow-hidden  bg-gray-50">
         {/* Left Sidebar */}

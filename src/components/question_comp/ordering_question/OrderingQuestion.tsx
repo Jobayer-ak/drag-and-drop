@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React from 'react';
@@ -16,14 +15,11 @@ import {
   CardTitle,
 } from '../../ui/card';
 
-interface OrderingQuestionProps extends ComponentNameProps {
-  dragHandleProps?: any;
-}
-
-const OrderingQuestion: React.FC<OrderingQuestionProps> = ({
+const OrderingQuestion: React.FC<ComponentNameProps> = ({
   uid,
   dragHandleProps,
   preview,
+  onDelete,
 }) => {
   const options = ['Option 1', 'Option 2'];
 
@@ -46,7 +42,13 @@ const OrderingQuestion: React.FC<OrderingQuestionProps> = ({
         <CardAction>
           <div className="flex justify-end items-center gap-2">
             <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
-            <RiDeleteBinLine className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <RiDeleteBinLine
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onDelete?.(uid); // ← Calls parent delete
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>

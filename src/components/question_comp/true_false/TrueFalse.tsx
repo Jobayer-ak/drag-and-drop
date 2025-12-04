@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
@@ -18,14 +17,11 @@ import {
 import { Label } from '../../ui/label';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 
-interface TrueFalseProps extends ComponentNameProps {
-  dragHandleProps?: any;
-}
-
-const TrueFalse: React.FC<TrueFalseProps> = ({
+const TrueFalse: React.FC<ComponentNameProps> = ({
   uid,
   dragHandleProps,
   preview,
+  onDelete,
 }) => {
   const options = ['True', 'False'];
   const [selected, setSelected] = useState<string | undefined>(undefined);
@@ -48,7 +44,13 @@ const TrueFalse: React.FC<TrueFalseProps> = ({
         <CardAction>
           <div className="flex justify-end items-center gap-2">
             <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
-            <RiDeleteBinLine className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <RiDeleteBinLine
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onDelete?.(uid); // ← Calls parent delete
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>

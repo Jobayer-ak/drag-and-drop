@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -18,9 +17,18 @@ import {
 import { Label } from '../../ui/label';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 
-const MultipleChoice: React.FC<
-  ComponentNameProps & { dragHandleProps?: any }
-> = ({ uid, dragHandleProps, preview }) => {
+// export interface MultipleChoiceProps extends ComponentNameProps {
+//   dragHandleProps?: any;
+//   preview?: boolean;
+//   onDelete?: (uid: string) => void; // ← ADDED
+// }
+
+const MultipleChoice: React.FC<ComponentNameProps> = ({
+  uid,
+  dragHandleProps,
+  preview,
+  onDelete, // ← Destructured
+}) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
@@ -32,9 +40,8 @@ const MultipleChoice: React.FC<
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-5">
-          {/* Drag handle */}
           <MdOutlineDragIndicator
-            className="h-6 w-6 text-gray-400 cursor-move focus:outline-none focus:ring-0"
+            className="h-6 w-6 text-gray-400 cursor-move"
             {...dragHandleProps}
           />
           Multiple Choice Question
@@ -42,7 +49,14 @@ const MultipleChoice: React.FC<
         <CardAction>
           <div className="flex justify-end items-center gap-2">
             <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
-            <RiDeleteBinLine className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <RiDeleteBinLine
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              // className="h-5 w-5 text-red-500 hover:text-red-700 cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onDelete?.(uid); // ← Calls parent delete
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>
@@ -50,7 +64,7 @@ const MultipleChoice: React.FC<
       <CardContent>
         <RadioGroup
           value={selected}
-          onValueChange={(val) => setSelected(val)}
+          onValueChange={setSelected}
           className="px-1 text-gray-400"
         >
           {options.map((option, index) => {

@@ -5,10 +5,6 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import {
-  restrictToFirstScrollableAncestor,
-  restrictToVerticalAxis,
-} from '@dnd-kit/modifiers';
-import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -127,7 +123,6 @@ export const MainContainer: React.FC<MainContainerProps> = ({
         items={droppedItems.map((i) => i.uid)}
         strategy={verticalListSortingStrategy}
         // THIS WORKS 100% — modifiers apply ONLY to this sortable list
-        modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
       >
         <div
           className={` z-10 flex flex-col  ${
@@ -170,6 +165,9 @@ export const MainContainer: React.FC<MainContainerProps> = ({
                 lastDropped={lastDroppedUid === item.uid}
                 onDragStateChange={(uid, dragging) => {
                   // console.log('Sorting drag state:', uid, dragging);
+                }}
+                onDelete={(uid) => {
+                  setDroppedItems((prev) => prev.filter((i) => i.uid !== uid));
                 }}
               />
             </div>

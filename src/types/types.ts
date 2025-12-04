@@ -20,4 +20,6 @@ export interface MainContainerProps {
 export interface ComponentNameProps {
   uid?: string;
   preview?: boolean;
+  dragHandleProps?: any;
+  onDelete?: (uid: string) => void;
 }

@@ -15,12 +15,14 @@ interface SortableItemProps {
   item: DroppedQuestion;
   lastDropped: boolean;
   onDragStateChange?: (uid: string, dragging: boolean) => void;
+  onDelete: (uid: string) => void; //
 }
 
 const SortableItem: React.FC<SortableItemProps> = ({
   item,
   lastDropped,
   onDragStateChange,
+  onDelete,
 }) => {
   const {
     attributes,
@@ -45,15 +47,15 @@ const SortableItem: React.FC<SortableItemProps> = ({
   }, [isDragging, item.uid, onDragStateChange]);
 
   // Fix height collapsing during drag
-  useEffect(() => {
-    if (!wrapperRef.current) return;
-    if (isDragging) {
-      const height = wrapperRef.current.getBoundingClientRect().height;
-      wrapperRef.current.style.height = `${height}px`;
-    } else {
-      wrapperRef.current.style.height = 'auto';
-    }
-  }, [isDragging]);
+  // useEffect(() => {
+  //   if (!wrapperRef.current) return;
+  //   if (isDragging) {
+  //     const height = wrapperRef.current.getBoundingClientRect().height;
+  //     wrapperRef.current.style.height = `${height}px`;
+  //   } else {
+  //     wrapperRef.current.style.height = 'auto';
+  //   }
+  // }, [isDragging]);
 
   // Apply ONLY Y-axis transform, completely ignore X-axis
   // const style: CSSProperties = {
@@ -88,21 +90,43 @@ const SortableItem: React.FC<SortableItemProps> = ({
     switch (item.type) {
       case 'MultipleChoice':
         return (
-          <MultipleChoice uid={item.uid} dragHandleProps={dragHandleProps} />
+          <MultipleChoice
+            onDelete={onDelete}
+            uid={item.uid}
+            dragHandleProps={dragHandleProps}
+          />
         );
       case 'MultipleSelect':
         return (
-          <MultipleSelect uid={item.uid} dragHandleProps={dragHandleProps} />
+          <MultipleSelect
+            onDelete={onDelete}
+            uid={item.uid}
+            dragHandleProps={dragHandleProps}
+          />
         );
       case 'TrueFalse':
-        return <TrueFalse uid={item.uid} dragHandleProps={dragHandleProps} />;
+        return (
+          <TrueFalse
+            onDelete={onDelete}
+            uid={item.uid}
+            dragHandleProps={dragHandleProps}
+          />
+        );
       case 'Numeric':
         return (
-          <NumericEntry uid={item.uid} dragHandleProps={dragHandleProps} />
+          <NumericEntry
+            onDelete={onDelete}
+            uid={item.uid}
+            dragHandleProps={dragHandleProps}
+          />
         );
       case 'Ordering':
         return (
-          <OrderingQuestion uid={item.uid} dragHandleProps={dragHandleProps} />
+          <OrderingQuestion
+            onDelete={onDelete}
+            uid={item.uid}
+            dragHandleProps={dragHandleProps}
+          />
         );
       default:
         return null;
@@ -110,8 +134,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
   };
 
   return (
-    <div ref={wrapperRef} className="w-full relative">
-      <div ref={setNodeRef} {...attributes} {...listeners} style={style}>
+    <div ref={setNodeRef} className="w-full relative" style={style}>
+      <div {...attributes} {...listeners}>
         {renderQuestion()}
       </div>
     </div>

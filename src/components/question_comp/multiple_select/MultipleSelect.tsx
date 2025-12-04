@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -18,9 +17,12 @@ import {
 import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
 
-export const MultipleSelect: React.FC<
-  ComponentNameProps & { dragHandleProps?: any }
-> = ({ uid, dragHandleProps, preview }) => {
+export const MultipleSelect: React.FC<ComponentNameProps> = ({
+  uid,
+  dragHandleProps,
+  preview,
+  onDelete,
+}) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -49,7 +51,14 @@ export const MultipleSelect: React.FC<
         <CardAction>
           <div className="flex justify-end items-center gap-2">
             <FiCopy className="h-5 w-5 text-gray-400" />
-            <RiDeleteBinLine className="h-5 w-5 text-gray-400" />
+            <RiDeleteBinLine
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              // className="h-5 w-5 text-red-300 hover:text-red-700 cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onDelete?.(uid); // ← Calls parent delete
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>

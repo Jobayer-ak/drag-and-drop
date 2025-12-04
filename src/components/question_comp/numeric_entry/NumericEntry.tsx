@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React from 'react';
@@ -17,14 +16,11 @@ import {
 } from '../../ui/card';
 import { Input } from '../../ui/input';
 
-interface NumericEntryProps extends ComponentNameProps {
-  dragHandleProps?: any;
-}
-
-const NumericEntry: React.FC<NumericEntryProps> = ({
+const NumericEntry: React.FC<ComponentNameProps> = ({
   uid,
   dragHandleProps,
   preview,
+  onDelete,
 }) => {
   const inputId = `${uid}-numeric-input`; // unique id for input
 
@@ -47,7 +43,13 @@ const NumericEntry: React.FC<NumericEntryProps> = ({
         <CardAction>
           <div className="flex justify-end items-center gap-2">
             <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
-            <RiDeleteBinLine className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <RiDeleteBinLine
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onDelete?.(uid); // ← Calls parent delete
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>
