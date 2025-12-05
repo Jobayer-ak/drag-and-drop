@@ -20,6 +20,7 @@ const OrderingQuestion: React.FC<ComponentNameProps> = ({
   dragHandleProps,
   preview,
   onDelete,
+  onEdit,
 }) => {
   const options = ['Option 1', 'Option 2'];
 
@@ -41,7 +42,13 @@ const OrderingQuestion: React.FC<ComponentNameProps> = ({
 
         <CardAction>
           <div className="flex justify-end items-center gap-2">
-            <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <FiCopy
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onEdit?.(uid); // ← Calls parent delete
+              }}
+            />
             <RiDeleteBinLine
               className="h-5 w-5 text-gray-400 cursor-pointer"
               onClick={(e) => {

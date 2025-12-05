@@ -16,6 +16,8 @@ interface SortableItemProps {
   lastDropped: boolean;
   onDragStateChange?: (uid: string, dragging: boolean) => void;
   onDelete: (uid: string) => void; //
+  onEdit: (uid: string) => void;
+  isSelected: boolean;
 }
 
 const SortableItem: React.FC<SortableItemProps> = ({
@@ -23,6 +25,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
   lastDropped,
   onDragStateChange,
   onDelete,
+  onEdit,
+  isSelected,
+  // isSelected,
 }) => {
   const {
     attributes,
@@ -86,6 +91,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
   const dragHandleProps = { ...listeners, ...attributes };
 
+  console.log('check: ', isSelected);
+
   const renderQuestion = () => {
     switch (item.type) {
       case 'MultipleChoice':
@@ -94,6 +101,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             onDelete={onDelete}
             uid={item.uid}
             dragHandleProps={dragHandleProps}
+            onEdit={onEdit}
           />
         );
       case 'MultipleSelect':
@@ -102,6 +110,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             onDelete={onDelete}
             uid={item.uid}
             dragHandleProps={dragHandleProps}
+            onEdit={onEdit}
           />
         );
       case 'TrueFalse':
@@ -110,6 +119,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             onDelete={onDelete}
             uid={item.uid}
             dragHandleProps={dragHandleProps}
+            onEdit={onEdit}
           />
         );
       case 'Numeric':
@@ -118,6 +128,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             onDelete={onDelete}
             uid={item.uid}
             dragHandleProps={dragHandleProps}
+            onEdit={onEdit}
           />
         );
       case 'Ordering':
@@ -126,6 +137,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             onDelete={onDelete}
             uid={item.uid}
             dragHandleProps={dragHandleProps}
+            onEdit={onEdit}
           />
         );
       default:
@@ -135,9 +147,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
   return (
     <div ref={setNodeRef} className="w-full relative" style={style}>
-      <div {...attributes} {...listeners}>
-        {renderQuestion()}
-      </div>
+      {renderQuestion()}
     </div>
   );
 };

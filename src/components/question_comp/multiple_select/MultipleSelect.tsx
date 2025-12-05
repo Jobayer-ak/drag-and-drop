@@ -22,6 +22,7 @@ export const MultipleSelect: React.FC<ComponentNameProps> = ({
   dragHandleProps,
   preview,
   onDelete,
+  onEdit,
 }) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
@@ -32,6 +33,8 @@ export const MultipleSelect: React.FC<ComponentNameProps> = ({
       [option]: !prev[option],
     }));
   };
+
+  console.log('uid: ', uid);
 
   return (
     <Card
@@ -50,7 +53,13 @@ export const MultipleSelect: React.FC<ComponentNameProps> = ({
         </CardTitle>
         <CardAction>
           <div className="flex justify-end items-center gap-2">
-            <FiCopy className="h-5 w-5 text-gray-400" />
+            <FiCopy
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation(); // ← Prevents drag
+                onEdit?.(uid); // ← Calls parent delete
+              }}
+            />
             <RiDeleteBinLine
               className="h-5 w-5 text-gray-400 cursor-pointer"
               // className="h-5 w-5 text-red-300 hover:text-red-700 cursor-pointer transition-colors"

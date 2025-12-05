@@ -76,10 +76,15 @@ export default function BasicDragPage(): JSX.Element {
   const [droppedItems, setDroppedItems] = useState<DroppedQuestion[]>([]);
   const [lastDroppedUid, setLastDroppedUid] = useState<string | null>(null);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
+  const [selectedQuestionUid, setSelectedQuestionUid] = useState<string | null>(
+    null
+  ); // ← NEW
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {}, [selectedQuestionUid]);
 
   function handleDragStart(event: DragStartEvent) {
     // ensure string
@@ -154,7 +159,15 @@ export default function BasicDragPage(): JSX.Element {
     (item) => item.uid === activeId
   );
 
+  console.log('active first: ', activeItem?.id);
   console.log('Sorting drag active id: ', sortingDragActiveId);
+  console.log('dropped Items: ', droppedItems);
+
+  const editableItem = droppedItems.filter(
+    (item) => item.uid === selectedQuestionUid
+  );
+
+  const appearId = droppedItems.filter((item) => item.uid === lastDroppedUid);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -169,6 +182,11 @@ export default function BasicDragPage(): JSX.Element {
       },
     })
   );
+
+  console.log('appear id: ', appearId);
+
+  // console.log('selected Question id: ', selectedQuestionUid);
+  // console.log('last dropped id: ', lastDroppedUid);
 
   return (
     <DndContext
@@ -208,18 +226,23 @@ export default function BasicDragPage(): JSX.Element {
         </aside>
 
         {/* Center Workspace */}
-        <main className="w-4/6 py-6 h-full overflow-y-auto pr-2 hide-scrollbar">
+        <main className="w-3/6 py-6 h-full overflow-y-auto pr-2 hide-scrollbar">
           <MainContainer
             droppedItems={droppedItems}
             setDroppedItems={setDroppedItems}
             activeItem={activeId}
             lastDroppedUid={lastDroppedUid}
+            selectedQuestionUid={selectedQuestionUid}
+            setSelectedQuestionUid={setSelectedQuestionUid}
           />
         </main>
 
         {/* Right Sidebar */}
         <aside className="w-2/5 h-full pt-2 overflow-y-auto hide-scrollbar">
-          <MainEditPage />
+          <MainEditPage
+            editableItem={editableItem}
+            activeItemId={appearId[0]?.type}
+          />
         </aside>
       </div>
 

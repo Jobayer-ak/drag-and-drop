@@ -17,6 +17,8 @@ interface MainContainerProps {
   setDroppedItems: React.Dispatch<React.SetStateAction<DroppedQuestion[]>>;
   activeItem: string | null;
   lastDroppedUid: string | null;
+  selectedQuestionUid: string | null;
+  setSelectedQuestionUid: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 // DropZone component (only for NEW items from sidebar)
@@ -52,6 +54,8 @@ export const MainContainer: React.FC<MainContainerProps> = ({
   setDroppedItems,
   activeItem,
   lastDroppedUid,
+  selectedQuestionUid,
+  setSelectedQuestionUid,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -169,6 +173,8 @@ export const MainContainer: React.FC<MainContainerProps> = ({
                 onDelete={(uid) => {
                   setDroppedItems((prev) => prev.filter((i) => i.uid !== uid));
                 }}
+                onEdit={(uid) => setSelectedQuestionUid(uid)}
+                isSelected={selectedQuestionUid ? true : false}
               />
             </div>
           ))}

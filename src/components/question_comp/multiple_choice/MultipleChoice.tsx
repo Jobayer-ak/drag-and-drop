@@ -28,9 +28,10 @@ const MultipleChoice: React.FC<ComponentNameProps> = ({
   dragHandleProps,
   preview,
   onDelete, // ← Destructured
+  onEdit,
 }) => {
   const options = ['Option 1', 'Option 2', 'Option 3'];
-  const [selected, setSelected] = useState<string | undefined>(undefined);
+  const [selected, setSelected] = useState<boolean>(false);
 
   return (
     <Card
@@ -48,7 +49,14 @@ const MultipleChoice: React.FC<ComponentNameProps> = ({
         </CardTitle>
         <CardAction>
           <div className="flex justify-end items-center gap-2">
-            <FiCopy className="h-5 w-5 text-gray-400 cursor-pointer" />
+            <FiCopy
+              className="h-5 w-5 text-gray-400 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(uid);
+                setSelected(true);
+              }}
+            />
             <RiDeleteBinLine
               className="h-5 w-5 text-gray-400 cursor-pointer"
               // className="h-5 w-5 text-red-500 hover:text-red-700 cursor-pointer transition-colors"
